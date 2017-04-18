@@ -1,10 +1,8 @@
 package com.company;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.net.Socket;
+import java.util.Scanner;
 
 /*
  * ${Classname}
@@ -17,17 +15,29 @@ import java.net.Socket;
  */
 public class Client {
     public static void main(String[] args) {
+        System.out.println("I'm a client");
         try {
             Socket socket = new Socket("localhost", 5555);
+            BufferedReader bufferedReader = new BufferedReader(
+                    new InputStreamReader(socket.getInputStream()));
             BufferedWriter bufferedWriter = new BufferedWriter(
                     new OutputStreamWriter(socket.getOutputStream()));
 
-            bufferedWriter.write("Hello, it's me");
-            bufferedWriter.flush();
+            Reader reader = new Reader(bufferedReader);
+            Thread readerThread = new Thread(reader);
+            readerThread.start();
+
+            Writer writer = new Writer(bufferedWriter);
+            Thread writerThread = new Thread(writer);
+            writerThread.start();
+
+            readerThread.join();
+            writerThread.join();
             socket.close();
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-
     }
 }
